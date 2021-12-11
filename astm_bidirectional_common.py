@@ -5,19 +5,18 @@ import time
 
 class my_sql(object):
   def get_link(self,my_host,my_user,my_pass,my_db):
-    con=MySQLdb.connect(my_host,my_user,my_pass,my_db)
-    logging.debug(con)
-    if(con==None):
+    self.con=MySQLdb.connect(my_host,my_user,my_pass,my_db)
+    logging.debug(self.con)
+    if(self.con==None):
       if(debug==1): logging.debug("Can't connect to database")
+      return None
     else:
-      pass
       logging.debug('connected')
-      return con
 
-  def run_query(self,con,prepared_sql,data_tpl):
-    cur=con.cursor()
+  def run_query(self,prepared_sql,data_tpl):
+    cur=self.con.cursor()
     cur.execute(prepared_sql,data_tpl)
-    con.commit()
+    self.con.commit()
     msg="rows affected: {}".format(cur.rowcount)
     logging.debug(msg)
     return cur
@@ -28,8 +27,25 @@ class my_sql(object):
   def close_cursor(self,cur):
     cur.close()
 
-  def close_link(self,con):
-    con.close()
+  def close_link(self):
+    self.con.close()
+
+  def run_query_with_log(self,prepared_sql,data_tpl):
+    try:
+      cur=self.run_query(prepared_sql,data_tpl)
+      msg=prepared_sql
+      print_to_log('prepared_sql:',msg)
+      msg=data_tpl
+      print_to_log('data tuple:',msg)
+      print_to_log('cursor:',cur)
+      return cur
+    except Exception as my_ex:
+      msg=prepared_sql
+      print_to_log('prepared_sql:',msg)
+      msg=data_tpl
+      print_to_log('data tuple:',msg)
+      print_to_log('exception description:',my_ex)
+      return None
 
 #logging defined in child class, illogical
 class file_mgmt(object):
